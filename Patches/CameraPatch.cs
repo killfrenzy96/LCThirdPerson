@@ -3,6 +3,7 @@ using GameNetcodeStuff;
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -40,11 +41,11 @@ namespace LCThirdPerson.Patches
             // Hide the player arms
             Instance.thisPlayerModelArms.enabled = false;
 
-            // Increase the grab distance
-            Instance.grabDistance = Math.Max(5f - ThirdPersonPlugin.Instance.Offset.Value.z, 5);
-
             // Set culling mask to see model's layer
             Instance.gameplayCamera.cullingMask = OriginalCullingMask | (1 << 23);
+
+            // Increase the grab distance
+            Instance.grabDistance = Math.Max(5f - ThirdPersonPlugin.Instance.Offset.Value.z, 5);
         }
 
         public static void OnDisable()
@@ -57,19 +58,33 @@ namespace LCThirdPerson.Patches
             // Show the visor
             // visor.gameObject.SetActive(true);
             var visorRenderers = visor.GetComponentInChildren<MeshRenderer>();
-            if (visorRenderers) visorRenderers.enabled = true;
+            if (visorRenderers) visorRenderers.enabled = !ThirdPersonPlugin.Instance.AlwaysHideVisor.Value;
 
-            // Hide the player model
-            playerModel.shadowCastingMode = OriginalShadowCastingMode;
+            if (ThirdPersonPlugin.Instance.FirstPersonVrm.Value)
+            {
+                // Show the player model
+                playerModel.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
 
-            // Show the arms
-            Instance.thisPlayerModelArms.enabled = true;
+                // Hide the player arms
+                Instance.thisPlayerModelArms.enabled = false;
+
+                // Set culling mask to see model's layer
+                Instance.gameplayCamera.cullingMask = OriginalCullingMask | (1 << 23);
+            }
+            else
+            {
+                // Hide the player model
+                playerModel.shadowCastingMode = OriginalShadowCastingMode;
+
+                // Show the arms
+                Instance.thisPlayerModelArms.enabled = true;
+
+                // Hide the models' layer again
+                Instance.gameplayCamera.cullingMask = OriginalCullingMask;
+            }
 
             // Reset the grab distance
             Instance.grabDistance = 5f;
-
-            // Hide the models' layer again
-            Instance.gameplayCamera.cullingMask = OriginalCullingMask;
         }
 
         [HarmonyPostfix]
@@ -129,6 +144,26 @@ namespace LCThirdPerson.Patches
                 return;
             }
 
+            // Set head size based on camera distance
+            if (ThirdPersonPlugin.Instance.FirstPersonVrm.Value)
+            {
+                Transform headBone = GetHeadBone();
+                if (headBone != null && ThirdPersonPlugin.Camera != null)
+                {
+                    if (
+                        Vector3.Distance(headBone.position, ThirdPersonPlugin.Camera.position) >
+                        ThirdPersonPlugin.Instance.FirstPersonVrmHeadHideDistance.Value
+                    ) {
+                        headBone.localScale = new Vector3(1f, 1f, 1f);
+                    }
+                    else
+                    {
+                        headBone.localScale = new Vector3(0f, 0f, 0f);
+                    }
+                    
+                }
+            }
+
             ThirdPersonPlugin.Instance.CheckEnable();
         }
 
@@ -143,6 +178,11 @@ namespace LCThirdPerson.Patches
                 return;
             }
 
+            // Move camera forward/back to avoid head better
+            var forwardOffset = originalTransform.up;
+            forwardOffset.y = 0f;
+            forwardOffset *= ThirdPersonPlugin.Instance.CameraLookDownOffset.Value;
+
             var gameplayCamera = Instance.gameplayCamera;
 
             // Set the placeholder rotation to match the updated gameplayCamera rotation
@@ -156,7 +196,7 @@ namespace LCThirdPerson.Patches
             var offset = originalTransform.transform.right * ThirdPersonPlugin.Instance.Offset.Value.x +
                 originalTransform.transform.up * ThirdPersonPlugin.Instance.Offset.Value.y;
             var lineStart = originalTransform.transform.position;
-            var lineEnd = originalTransform.transform.position + offset + originalTransform.transform.forward * ThirdPersonPlugin.Instance.Offset.Value.z;
+            var lineEnd = originalTransform.transform.position + forwardOffset + offset + originalTransform.transform.forward * ThirdPersonPlugin.Instance.Offset.Value.z;
 
             // Check for camera collisions
             if (Physics.Linecast(lineStart, lineEnd, out RaycastHit hit, StartOfRound.Instance.collidersAndRoomMask) && !IgnoreCollision(hit.transform.name))
@@ -168,8 +208,11 @@ namespace LCThirdPerson.Patches
                 offset += originalTransform.transform.forward * ThirdPersonPlugin.Instance.Offset.Value.z;
             }
 
+            // Limit height movement by camera
+            offset.y = Math.Min(offset.y, ThirdPersonPlugin.Instance.CameraMaxHeight.Value);
+
             // Set the camera offset
-            gameplayCamera.transform.position = originalTransform.transform.position + offset;
+            gameplayCamera.transform.position = originalTransform.transform.position + forwardOffset + offset;
 
             // Don't fix interact ray if on a ladder
             if (Instance.isClimbingLadder)
@@ -177,7 +220,7 @@ namespace LCThirdPerson.Patches
                 return;
             }
 
-            // Fix the interact ray 
+            // Fix the interact ray
             var methodInfo = typeof(PlayerControllerB).GetMethod(
                 "SetHoverTipAndCurrentInteractTrigger",
                 System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance
@@ -241,6 +284,58 @@ namespace LCThirdPerson.Patches
         private static bool IgnoreCollision(string name)
         {
             return IgnoreGameObjectPrefixes.Any(prefix => name.StartsWith(prefix));
+        }
+
+        private static Transform GetHeadBone()
+        {
+            // TODO: Extremely hacky. Fix this somehow.
+
+            if (ThirdPersonPlugin.VrmHeadTransform == null)
+            {
+                GameObject[] rootObjects = Instance.localVisor.gameObject.scene.GetRootGameObjects();
+                foreach (var obj in rootObjects)
+                {
+                    if (obj.name.StartsWith("LethalVRM Character Model"))
+                    {
+                        Transform headBone = RecursiveFindChild(obj.transform, "Head");
+                        if (headBone != null)
+                        {
+                            if (
+                                Vector3.Distance(headBone.position, ThirdPersonPlugin.Camera.position) <
+                                ThirdPersonPlugin.Instance.FirstPersonVrmHeadHideDistance.Value
+                            ) {
+                                return ThirdPersonPlugin.VrmHeadTransform = headBone;
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                return ThirdPersonPlugin.VrmHeadTransform;
+            }
+
+            return null;
+        }
+
+        private static Transform RecursiveFindChild(Transform parent, string childName)
+        {
+            foreach (Transform child in parent)
+            {
+                if (child.name.ToLower() == childName.ToLower())
+                {
+                    return child;
+                }
+                else
+                {
+                    Transform found = RecursiveFindChild(child, childName);
+                    if (found != null)
+                    {
+                        return found;
+                    }
+                }
+            }
+            return null;
         }
     }
 }
