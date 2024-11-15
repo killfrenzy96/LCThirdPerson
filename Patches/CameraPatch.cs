@@ -293,6 +293,9 @@ namespace LCThirdPerson.Patches
             if (ThirdPersonPlugin.VrmHeadTransform == null)
             {
                 GameObject[] rootObjects = Instance.localVisor.gameObject.scene.GetRootGameObjects();
+                Transform nearestHeadBone = null;
+                const float maximumHeadBoneDistance = 0.5f;
+
                 foreach (var obj in rootObjects)
                 {
                     if (obj.name.StartsWith("LethalVRM Character Model"))
@@ -300,14 +303,19 @@ namespace LCThirdPerson.Patches
                         Transform headBone = RecursiveFindChild(obj.transform, "Head");
                         if (headBone != null)
                         {
-                            if (
-                                Vector3.Distance(headBone.position, ThirdPersonPlugin.Camera.position) <
-                                ThirdPersonPlugin.Instance.FirstPersonVrmHeadHideDistance.Value
-                            ) {
-                                return ThirdPersonPlugin.VrmHeadTransform = headBone;
+                            float headBoneDistance = Vector3.Distance(headBone.position, ThirdPersonPlugin.OriginalTransform.position);
+                            if (headBoneDistance < maximumHeadBoneDistance)
+                            {
+                                if (nearestHeadBone != null) return null; // Multiple VRM avatars are suspected to be the main avatar.
+                                nearestHeadBone = headBone;
                             }
                         }
                     }
+                }
+
+                if (nearestHeadBone != null)
+                {
+                    return ThirdPersonPlugin.VrmHeadTransform = nearestHeadBone;
                 }
             }
             else

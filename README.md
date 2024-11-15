@@ -20,6 +20,7 @@ Toggle with "V"
 
 ## Added Features and Fixes
 - Improved camera angles.
+- Added config option to always hide visor.
 - Fixed grabbing distance extending each time we load into a new planet.
 - Fixed the ability to see through fog.
 - Experimental implementation to see your VRM avatar in first person (must enable via config).

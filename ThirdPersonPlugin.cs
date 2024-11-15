@@ -73,7 +73,7 @@ namespace LCThirdPerson
             Offset = Config.Bind("Options", "CameraOffset", new Vector3(0.4f, 0f, -2f));
             CameraMaxHeight = Config.Bind("Options", "CameraMaxHeight", 1f);
             CameraLookDownOffset = Config.Bind("Options", "CameraLookDownOffset", 0.2f);
-            AlwaysHideVisor = Config.Bind("Options", "AlwaysHideVisor", true);
+            AlwaysHideVisor = Config.Bind("Options", "AlwaysHideVisor", false);
             FirstPersonVrm = Config.Bind("Options", "FirstPersonVRM", false);
             FirstPersonVrmHeadHideDistance = Config.Bind("Options", "VrmHeadHideDistance", 0.25f);
 
