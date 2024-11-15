@@ -16,6 +16,7 @@ namespace LCThirdPerson
         public static ThirdPersonPlugin Instance { get; private set; }
         public static Transform Camera { get; internal set; }
         public static Transform OriginalTransform { get; internal set; }
+        public static Transform VrmHeadTransform { get; internal set; }
 
 
         public static Sprite CrosshairSprite { get; internal set; }
@@ -26,9 +27,12 @@ namespace LCThirdPerson
         public ConfigEntry<Vector3> Offset { get; set; }
         public ConfigEntry<float> CameraMaxHeight { get; set; }
         public ConfigEntry<float> CameraLookDownOffset { get; set; }
+        public ConfigEntry<bool> AlwaysHideVisor { get; set; }
+        public ConfigEntry<bool> FirstPersonVrm { get; set; }
+        public ConfigEntry<float> FirstPersonVrmHeadHideDistance { get; set; }
 
         private bool tpEnabled;
-        public bool Enabled { 
+        public bool Enabled {
             get { return tpEnabled; }
             set { SetEnabled(value); }
         }
@@ -43,7 +47,7 @@ namespace LCThirdPerson
             Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
 
             if (Instance == null)
-            { 
+            {
                 Instance = this;
             }
 
@@ -69,6 +73,9 @@ namespace LCThirdPerson
             Offset = Config.Bind("Options", "CameraOffset", new Vector3(1f, 0f, -2f));
             CameraMaxHeight = Config.Bind("Options", "CameraMaxHeight", 1f);
             CameraLookDownOffset = Config.Bind("Options", "CameraLookDownOffset", 0.2f);
+            AlwaysHideVisor = Config.Bind("Options", "AlwaysHideVisor", true);
+            FirstPersonVrm = Config.Bind("Options", "FirstPersonVRM", false);
+            FirstPersonVrmHeadHideDistance = Config.Bind("Options", "VrmHeadHideDistance", 0.25f);
 
             Enabled = StartEnabled.Value;
         }
@@ -92,11 +99,11 @@ namespace LCThirdPerson
 
             if (tpEnabled)
             {
-                OnEnable.Invoke(); 
-            } 
-            else 
-            { 
-                OnDisable.Invoke(); 
+                OnEnable.Invoke();
+            }
+            else
+            {
+                OnDisable.Invoke();
             }
         }
     }
