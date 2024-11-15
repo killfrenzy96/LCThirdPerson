@@ -75,7 +75,7 @@ namespace LCThirdPerson
             CameraLookDownOffset = Config.Bind("Options", "CameraLookDownOffset", 0.2f);
             AlwaysHideVisor = Config.Bind("Options", "AlwaysHideVisor", false);
             FirstPersonVrm = Config.Bind("Options", "FirstPersonVRM", false);
-            FirstPersonVrmHeadHideDistance = Config.Bind("Options", "VrmHeadHideDistance", 0.25f);
+            FirstPersonVrmHeadHideDistance = Config.Bind("Options", "VrmHeadHideDistance", 0.8f);
 
             Enabled = StartEnabled.Value;
         }
