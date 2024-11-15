@@ -3,8 +3,11 @@
 # LCThirdPerson
 Adds third person to Lethal Company.
 
+
 This is a fork of LCThirdPerson by bakerj76.
+
 Original Github: https://github.com/bakerj76/LCThirdPerson
+
 Original Thunderstore page: https://thunderstore.io/c/lethal-company/p/xboxcontroller/LCThirdPerson/
 
 ## How to use
