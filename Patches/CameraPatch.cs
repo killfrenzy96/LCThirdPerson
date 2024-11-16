@@ -1,13 +1,9 @@
-﻿using BepInEx.Logging;
-using GameNetcodeStuff;
+﻿using GameNetcodeStuff;
 using HarmonyLib;
 using System;
-using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
 using UnityEngine;
+using Steamworks;
 
 namespace LCThirdPerson.Patches
 {
@@ -99,6 +95,37 @@ namespace LCThirdPerson.Patches
         [HarmonyPatch("Update")]
         private static void PatchUpdate(ref PlayerControllerB __instance, ref bool ___isCameraDisabled, ref bool ___isPlayerControlled)
         {
+            // First person VRM specific updates
+            if (ThirdPersonPlugin.Instance.FirstPersonVrm.Value && Instance != null)
+            {
+                // Hide head if it is too close to the camera
+                Transform headBone = GetHeadBone();
+                if (headBone != null && ThirdPersonPlugin.Camera != null)
+                {
+                    if (
+                        Instance.isPlayerDead || !___isPlayerControlled ||
+                        Vector3.Distance(headBone.position, ThirdPersonPlugin.Camera.position) >
+                        ThirdPersonPlugin.Instance.FirstPersonVrmHeadHideDistance.Value
+                    )
+                    {
+                        headBone.localScale = new Vector3(1f, 1f, 1f);
+                    }
+                    else
+                    {
+                        headBone.localScale = new Vector3(0f, 0f, 0f);
+                    }
+
+                    // Show the player model
+                    Instance.thisPlayerModel.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
+
+                    // Hide the player arms
+                    Instance.thisPlayerModelArms.enabled = false;
+
+                    // Set culling mask to see model's layer
+                    Instance.gameplayCamera.cullingMask = OriginalCullingMask | (1 << 23);
+                }
+            }
+
             if (!___isPlayerControlled || ___isCameraDisabled)
             {
                 return;
@@ -146,35 +173,6 @@ namespace LCThirdPerson.Patches
             if (Instance.inTerminalMenu || Instance.isTypingChat)
             {
                 return;
-            }
-
-            // First person VRM specific updates
-            if (ThirdPersonPlugin.Instance.FirstPersonVrm.Value)
-            {
-                // Hide head if it is too close to the camera
-                Transform headBone = GetHeadBone();
-                if (headBone != null && ThirdPersonPlugin.Camera != null)
-                {
-                    if (
-                        Vector3.Distance(headBone.position, ThirdPersonPlugin.Camera.position) >
-                        ThirdPersonPlugin.Instance.FirstPersonVrmHeadHideDistance.Value
-                    ) {
-                        headBone.localScale = new Vector3(1f, 1f, 1f);
-                    }
-                    else
-                    {
-                        headBone.localScale = new Vector3(0f, 0f, 0f);
-                    }
-
-                    // Show the player model
-                    Instance.thisPlayerModel.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
-
-                    // Hide the player arms
-                    Instance.thisPlayerModelArms.enabled = false;
-
-                    // Set culling mask to see model's layer
-                    Instance.gameplayCamera.cullingMask = OriginalCullingMask | (1 << 23);
-                }
             }
 
             ThirdPersonPlugin.Instance.CheckEnable();
@@ -303,37 +301,28 @@ namespace LCThirdPerson.Patches
         {
             // TODO: Extremely hacky. Fix this somehow.
 
-            if (ThirdPersonPlugin.VrmHeadTransform == null)
-            {
-                GameObject[] rootObjects = Instance.localVisor.gameObject.scene.GetRootGameObjects();
-                Transform nearestHeadBone = null;
-                const float maximumHeadBoneDistance = 0.5f;
+            if (ThirdPersonPlugin.VrmHeadTransform != null) return ThirdPersonPlugin.VrmHeadTransform;
 
-                foreach (var obj in rootObjects)
+            var steamId = SteamClient.SteamId;
+            var steamName = SteamClient.Name;
+
+            if (steamName == null) return null;
+            var vrmObjectName = "LethalVRM Character Model " + steamName + " " + steamId;
+
+            // Iterate through root game objects to find the local VRM model
+            GameObject[] rootObjects = Instance.localVisor.gameObject.scene.GetRootGameObjects();
+            foreach (var obj in rootObjects)
+            {
+                if (obj.name == vrmObjectName)
                 {
-                    if (obj.name.StartsWith("LethalVRM Character Model"))
+                    Transform headBone = RecursiveFindChild(obj.transform, "Head");
+                    if (headBone != null)
                     {
-                        Transform headBone = RecursiveFindChild(obj.transform, "Head");
-                        if (headBone != null)
-                        {
-                            float headBoneDistance = Vector3.Distance(headBone.position, ThirdPersonPlugin.OriginalTransform.position);
-                            if (headBoneDistance < maximumHeadBoneDistance)
-                            {
-                                if (nearestHeadBone != null) return null; // Multiple VRM avatars are suspected to be the main avatar.
-                                nearestHeadBone = headBone;
-                            }
-                        }
+                        return ThirdPersonPlugin.VrmHeadTransform = headBone;
                     }
-                }
 
-                if (nearestHeadBone != null)
-                {
-                    return ThirdPersonPlugin.VrmHeadTransform = nearestHeadBone;
+                    break;
                 }
-            }
-            else
-            {
-                return ThirdPersonPlugin.VrmHeadTransform;
             }
 
             return null;
