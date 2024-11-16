@@ -59,8 +59,9 @@ namespace LCThirdPerson.Patches
             // visor.gameObject.SetActive(true);
             var visorRenderers = visor.GetComponentInChildren<MeshRenderer>();
             if (visorRenderers) visorRenderers.enabled = !ThirdPersonPlugin.Instance.AlwaysHideVisor.Value;
+            Transform headBone = GetHeadBone();
 
-            if (ThirdPersonPlugin.Instance.FirstPersonVrm.Value)
+            if (ThirdPersonPlugin.Instance.FirstPersonVrm.Value && headBone != null)
             {
                 // Show the player model
                 playerModel.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
@@ -135,8 +136,11 @@ namespace LCThirdPerson.Patches
             ThirdPersonPlugin.Camera.rotation = Instance.gameplayCamera.transform.rotation;
 
             // Reset the camera before the PlayerController update method, so nothing gets too messed up
-            Instance.gameplayCamera.transform.rotation = ThirdPersonPlugin.OriginalTransform.transform.rotation;
-            Instance.gameplayCamera.transform.position = ThirdPersonPlugin.OriginalTransform.transform.position;
+            if (!Instance.isClimbingLadder || !Instance.inVehicleAnimation)
+            {
+                Instance.gameplayCamera.transform.rotation = ThirdPersonPlugin.OriginalTransform.transform.rotation;
+                Instance.gameplayCamera.transform.position = ThirdPersonPlugin.OriginalTransform.transform.position;
+            }
 
             // Don't check for toggle key if in terminal menu or typing in chat
             if (Instance.inTerminalMenu || Instance.isTypingChat)
@@ -144,9 +148,10 @@ namespace LCThirdPerson.Patches
                 return;
             }
 
-            // Set head size based on camera distance
+            // First person VRM specific updates
             if (ThirdPersonPlugin.Instance.FirstPersonVrm.Value)
             {
+                // Hide head if it is too close to the camera
                 Transform headBone = GetHeadBone();
                 if (headBone != null && ThirdPersonPlugin.Camera != null)
                 {
@@ -160,7 +165,15 @@ namespace LCThirdPerson.Patches
                     {
                         headBone.localScale = new Vector3(0f, 0f, 0f);
                     }
-                    
+
+                    // Show the player model
+                    Instance.thisPlayerModel.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
+
+                    // Hide the player arms
+                    Instance.thisPlayerModelArms.enabled = false;
+
+                    // Set culling mask to see model's layer
+                    Instance.gameplayCamera.cullingMask = OriginalCullingMask | (1 << 23);
                 }
             }
 
@@ -215,7 +228,7 @@ namespace LCThirdPerson.Patches
             gameplayCamera.transform.position = originalTransform.transform.position + forwardOffset + offset;
 
             // Don't fix interact ray if on a ladder
-            if (Instance.isClimbingLadder)
+            if (Instance.isClimbingLadder || !Instance.inVehicleAnimation)
             {
                 return;
             }

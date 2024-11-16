@@ -3,7 +3,6 @@
 # LCThirdPerson
 Adds third person to Lethal Company.
 
-
 This is a fork of LCThirdPerson by bakerj76.
 
 Original Github: https://github.com/bakerj76/LCThirdPerson
@@ -23,6 +22,7 @@ Toggle with "V"
 - Added config option to always hide visor.
 - Fixed grabbing distance extending each time we load into a new planet.
 - Fixed the ability to see through fog.
+- Fixed movement issues when exiting ladders or vehicles.
 - Experimental implementation to see your VRM avatar in first person (must enable via config).
 
 ## Installation
