@@ -3,7 +3,7 @@
 # LCThirdPerson
 Adds third person to Lethal Company.
 
-This is a fork of LCThirdPerson by bakerj76.
+This is a fork of LCThirdPerson by bakerj76/xboxcontroller.
 
 Original Github: https://github.com/bakerj76/LCThirdPerson
 
@@ -20,11 +20,12 @@ Toggle with "V"
 ## Added Features and Fixes
 - Improved camera angles.
 - Added config option to always hide visor.
+- Experimental implementation to see your VRM avatar in first person (must enable via config).
 - Fixed grabbing distance extending each time we load into a new planet.
 - Fixed the ability to see through fog.
 - Fixed movement issues when exiting ladders or vehicles.
 - Fixed an issue where you are unable to switch between first and third person sometimes.
-- Experimental implementation to see your VRM avatar in first person (must enable via config).
+- Fixed shovel melee issues.
 
 ## Installation
 1. Set up BepInEx
