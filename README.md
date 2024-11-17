@@ -23,6 +23,7 @@ Toggle with "V"
 - Fixed grabbing distance extending each time we load into a new planet.
 - Fixed the ability to see through fog.
 - Fixed movement issues when exiting ladders or vehicles.
+- Fixed an issue where you are unable to switch between first and third person sometimes.
 - Experimental implementation to see your VRM avatar in first person (must enable via config).
 
 ## Installation
