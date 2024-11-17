@@ -65,6 +65,7 @@ namespace LCThirdPerson
             harmony.PatchAll(typeof(CameraPatch));
             harmony.PatchAll(typeof(CursorPatch));
             harmony.PatchAll(typeof(HUDPatch));
+            harmony.PatchAll(typeof(ShovelPatch));
         }
 
         internal void SetConfig()
