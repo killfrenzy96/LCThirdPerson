@@ -317,7 +317,7 @@ namespace LCThirdPerson.Patches
             GameObject[] rootObjects = Instance.localVisor.gameObject.scene.GetRootGameObjects();
             foreach (var obj in rootObjects)
             {
-                if (obj.name == vrmObjectName)
+                if (obj.name.EndsWith(vrmObjectName))
                 {
                     Transform headBone = RecursiveFindChild(obj.transform, "Head");
                     if (headBone != null)
