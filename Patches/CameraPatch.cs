@@ -143,6 +143,10 @@ namespace LCThirdPerson.Patches
                 {
                     OnEnable();
                 }
+                else
+                { 
+                    OnDisable();
+                }
 
                 TriggerAwake = false;
             }
