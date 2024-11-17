@@ -37,6 +37,8 @@ namespace LCThirdPerson
             set { SetEnabled(value); }
         }
 
+        private bool enablePressed = false;
+
         internal static ManualLogSource Log { get; set; }
         internal UnityEvent OnEnable { get; private set; }
         internal UnityEvent OnDisable { get; private set; }
@@ -87,9 +89,17 @@ namespace LCThirdPerson
 
         internal void CheckEnable()
         {
-            if (Enable.Value.IsUp())
+            if (Enable.Value.IsPressed())
             {
-                Enabled = !Enabled;
+                if (!enablePressed)
+                {
+                    Enabled = !Enabled;
+                    enablePressed = true;
+                }
+            }
+            else
+            {
+                enablePressed = false;
             }
         }
 

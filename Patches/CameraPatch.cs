@@ -103,7 +103,7 @@ namespace LCThirdPerson.Patches
                 if (headBone != null && ThirdPersonPlugin.Camera != null)
                 {
                     if (
-                        Instance.isPlayerDead || !___isPlayerControlled ||
+                        Instance.isPlayerDead ||
                         Vector3.Distance(headBone.position, ThirdPersonPlugin.Camera.position) >
                         ThirdPersonPlugin.Instance.FirstPersonVrmHeadHideDistance.Value
                     )
