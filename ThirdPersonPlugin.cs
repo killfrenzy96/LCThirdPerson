@@ -91,7 +91,8 @@ namespace LCThirdPerson
 
         internal void CheckEnable()
         {
-            if (Enable.Value.IsPressed())
+            // if (Enable.Value.IsPressed())
+            if (UnityInput.Current.GetKey(Enable.Value.MainKey))
             {
                 if (!enablePressed)
                 {

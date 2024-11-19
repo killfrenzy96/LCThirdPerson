@@ -49,6 +49,9 @@
     <Reference Include="UnityEngine.ImageConversionModule">
       <HintPath>Library\UnityEngine.ImageConversionModule.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.InputModule">
+      <HintPath>..\..\..\Games\SteamLibrary\steamapps\common\Lethal Company\Lethal Company_Data\Managed\UnityEngine.InputModule.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.PhysicsModule">
       <HintPath>Library\UnityEngine.PhysicsModule.dll</HintPath>
     </Reference>
