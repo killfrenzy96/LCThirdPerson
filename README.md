@@ -26,6 +26,7 @@ Toggle with "V"
 - Fixed movement issues when exiting ladders or vehicles.
 - Fixed an issue where you are unable to switch between first and third person sometimes.
 - Fixed shovel melee issues.
+- Fixed ghost girl being visible in third person.
 
 ## Installation
 1. Set up BepInEx
