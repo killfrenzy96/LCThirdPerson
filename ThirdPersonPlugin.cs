@@ -66,6 +66,7 @@ namespace LCThirdPerson
             harmony.PatchAll(typeof(CursorPatch));
             harmony.PatchAll(typeof(HUDPatch));
             harmony.PatchAll(typeof(ShovelPatch));
+            harmony.PatchAll(typeof(EnemyAIPatch));
         }
 
         internal void SetConfig()
