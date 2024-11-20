@@ -394,11 +394,12 @@ namespace LCThirdPerson.Patches
             // Get head bone
             if (vrmInstance == null || vrmInstance.Humanoid == null)
             {
-                VrmHeadTransform = RecursiveFindChild(VrmRootObject.transform, "Head");
+                VrmHeadTransform = RecursiveFindChild(VrmRootObject.transform, "Neck");
+                if (VrmHeadTransform == null) VrmHeadTransform = RecursiveFindChild(VrmRootObject.transform, "Head");
             }
             else
             {
-                VrmHeadTransform = vrmInstance.Humanoid.Head;
+                VrmHeadTransform = vrmInstance.Humanoid.Neck;
             }
 
             // Get head renderers
