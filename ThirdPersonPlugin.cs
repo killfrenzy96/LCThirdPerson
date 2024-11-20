@@ -1,4 +1,5 @@
 ﻿using BepInEx;
+using BepInEx.Bootstrap;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
@@ -16,8 +17,6 @@ namespace LCThirdPerson
         public static ThirdPersonPlugin Instance { get; private set; }
         public static Transform Camera { get; internal set; }
         public static Transform OriginalTransform { get; internal set; }
-        public static Transform VrmHeadTransform { get; internal set; }
-
 
         public static Sprite CrosshairSprite { get; internal set; }
 
@@ -67,6 +66,21 @@ namespace LCThirdPerson
             harmony.PatchAll(typeof(HUDPatch));
             harmony.PatchAll(typeof(ShovelPatch));
             harmony.PatchAll(typeof(EnemyAIPatch));
+        }
+
+        private void Start()
+        {
+            Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} start:");
+            // Print the contents of Chainloader.PluginInfos dictionary
+            foreach (var kvp in Chainloader.PluginInfos)
+            {
+                Log.LogInfo($"{kvp.Key} : {kvp.Value}");
+            }
+
+            // if (Chainloader.PluginInfos.ContainsKey("OomJan.BetterLethalVRM") || Chainloader.PluginInfos.ContainsKey("Ooseykins.LethalVRM"))
+            // {
+            // harmony.PatchAll(typeof(VRMPatch));
+            // }
         }
 
         internal void SetConfig()

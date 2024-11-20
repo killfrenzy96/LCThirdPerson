@@ -2,8 +2,11 @@
 using HarmonyLib;
 using System;
 using System.Linq;
+using System.Collections.Generic;
 using UnityEngine;
 using Steamworks;
+using UniVRM10;
+using System.Reflection;
 
 namespace LCThirdPerson.Patches
 {
@@ -14,6 +17,14 @@ namespace LCThirdPerson.Patches
         private static bool TriggerAwake;
         private static int OriginalCullingMask;
         private static UnityEngine.Rendering.ShadowCastingMode OriginalShadowCastingMode;
+
+        private static bool VrmAssemblyExists = false;
+        private static GameObject VrmRootObject = null;
+        private static Transform VrmHeadTransform = null;
+        private static List<Renderer> VrmHeadMeshes = new List<Renderer>();
+
+        private static bool VrmTriggerAwake = false;
+        private static bool VrmHeadVisible = true;
 
         private static readonly string[] IgnoreGameObjectPrefixes = new[]{
             "VolumeMain"
@@ -30,6 +41,8 @@ namespace LCThirdPerson.Patches
             // visor.gameObject.SetActive(false);
             var visorRenderers = visor.GetComponentInChildren<MeshRenderer>();
             if (visorRenderers) visorRenderers.enabled = false;
+
+            if (ThirdPersonPlugin.Instance.FirstPersonVrm.Value) SetVrmHeadVisibility(true);
 
             // Show the player model
             playerModel.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
@@ -55,9 +68,8 @@ namespace LCThirdPerson.Patches
             // visor.gameObject.SetActive(true);
             var visorRenderers = visor.GetComponentInChildren<MeshRenderer>();
             if (visorRenderers) visorRenderers.enabled = !ThirdPersonPlugin.Instance.AlwaysHideVisor.Value;
-            Transform headBone = GetHeadBone();
 
-            if (ThirdPersonPlugin.Instance.FirstPersonVrm.Value && headBone != null)
+            if (ThirdPersonPlugin.Instance.FirstPersonVrm.Value && SetVrmHeadVisibility(false))
             {
                 // Show the player model
                 playerModel.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
@@ -96,33 +108,44 @@ namespace LCThirdPerson.Patches
         private static void PatchUpdate(ref PlayerControllerB __instance, ref bool ___isCameraDisabled, ref bool ___isPlayerControlled)
         {
             // First person VRM specific updates
-            if (ThirdPersonPlugin.Instance.FirstPersonVrm.Value && Instance != null)
+            if (ThirdPersonPlugin.Instance.FirstPersonVrm.Value && Instance != null && VrmAssemblyExists)
             {
+                // Initialize VRM
+                VrmInit();
+
                 // Hide head if it is too close to the camera
-                Transform headBone = GetHeadBone();
-                if (headBone != null && ThirdPersonPlugin.Camera != null)
+                if (ThirdPersonPlugin.Camera != null && VrmHeadTransform != null)
                 {
+                    bool showHead;
                     if (
-                        Instance.isPlayerDead ||
-                        Vector3.Distance(headBone.position, ThirdPersonPlugin.Camera.position) >
+                        ThirdPersonPlugin.Instance.Enabled == true || Instance.isPlayerDead ||
+                        Vector3.Distance(VrmHeadTransform.position, ThirdPersonPlugin.Camera.position) >
                         ThirdPersonPlugin.Instance.FirstPersonVrmHeadHideDistance.Value
                     )
                     {
-                        headBone.localScale = new Vector3(1f, 1f, 1f);
+                        showHead = true;
                     }
                     else
                     {
-                        headBone.localScale = new Vector3(0f, 0f, 0f);
+                        showHead = false;
                     }
 
-                    // Show the player model
-                    Instance.thisPlayerModel.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
+                    if (VrmHeadVisible != showHead || VrmTriggerAwake)
+                    {
+                        // Show/hide head
+                        SetVrmHeadVisibility(showHead);
 
-                    // Hide the player arms
-                    Instance.thisPlayerModelArms.enabled = false;
+                        // Show the player model
+                        Instance.thisPlayerModel.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
 
-                    // Set culling mask to see model's layer
-                    Instance.gameplayCamera.cullingMask = OriginalCullingMask | (1 << 23);
+                        // Hide the player arms
+                        Instance.thisPlayerModelArms.enabled = false;
+
+                        // Set culling mask to see model's layer
+                        Instance.gameplayCamera.cullingMask = OriginalCullingMask | (1 << 23);
+
+                        VrmTriggerAwake = false;
+                    }
                 }
             }
 
@@ -148,7 +171,29 @@ namespace LCThirdPerson.Patches
                     OnDisable();
                 }
 
+                // Check if VRM10 is loaded
+                Assembly[] assems = AppDomain.CurrentDomain.GetAssemblies();
+                bool vrmFound = false;
+                bool uniHumanoidFound = false;
+                foreach (Assembly assem in assems)
+                {
+                    if (assem.FullName.StartsWith("VRM10,"))
+                    {
+                        vrmFound = true;
+                    }
+                    else if (assem.FullName.StartsWith("UniHumanoid,"))
+                    {
+                        uniHumanoidFound = true;
+                    }
+                }
+
+                if (vrmFound && uniHumanoidFound)
+                {
+                    VrmAssemblyExists = true;
+                }
+
                 TriggerAwake = false;
+                VrmTriggerAwake = true;
             }
 
             if (Instance == null)
@@ -301,35 +346,94 @@ namespace LCThirdPerson.Patches
             return IgnoreGameObjectPrefixes.Any(prefix => name.StartsWith(prefix));
         }
 
-        private static Transform GetHeadBone()
+        private static void VrmInit()
         {
-            // TODO: Extremely hacky. Fix this somehow.
+            if (VrmRootObject != null) return;
 
-            if (ThirdPersonPlugin.VrmHeadTransform != null) return ThirdPersonPlugin.VrmHeadTransform;
+            // Reset variables
+            VrmHeadVisible = true;
+            VrmTriggerAwake = true;
 
+            // Generate VRM object name to search for
             var steamId = SteamClient.SteamId;
             var steamName = SteamClient.Name;
 
-            if (steamName == null) return null;
+            if (steamName == null) return;
             var vrmObjectName = "LethalVRM Character Model " + steamName + " " + steamId;
 
-            // Iterate through root game objects to find the local VRM model
+            // Search root objects for the local VRM model
             GameObject[] rootObjects = Instance.localVisor.gameObject.scene.GetRootGameObjects();
             foreach (var obj in rootObjects)
             {
                 if (obj.name.EndsWith(vrmObjectName))
                 {
-                    Transform headBone = RecursiveFindChild(obj.transform, "Head");
-                    if (headBone != null)
-                    {
-                        return ThirdPersonPlugin.VrmHeadTransform = headBone;
-                    }
-
+                    VrmRootObject = obj;
                     break;
                 }
             }
 
-            return null;
+            if (VrmRootObject == null) return;
+
+            // Find first person renderers and head bone
+            var vrmInstance = VrmRootObject.GetComponent<Vrm10Instance>();
+
+            // Get head bone
+            if (vrmInstance == null || vrmInstance.Humanoid == null)
+            {
+                VrmHeadTransform = RecursiveFindChild(VrmRootObject.transform, "Head");
+            }
+            else
+            {
+                VrmHeadTransform = vrmInstance.Humanoid.Head;
+            }
+
+            // Get head renderers
+            VrmHeadMeshes.Clear();
+            if (vrmInstance != null && vrmInstance.Vrm != null && vrmInstance.Vrm.FirstPerson != null && vrmInstance.Vrm.FirstPerson.Renderers != null)
+            {
+                foreach (var rendererFlag in vrmInstance.Vrm.FirstPerson.Renderers)
+                {
+                    string rendererName = rendererFlag.Renderer;
+                    bool rendererIsHead = rendererFlag.FirstPersonFlag == UniGLTF.Extensions.VRMC_vrm.FirstPersonType.thirdPersonOnly;
+                    
+                    ThirdPersonPlugin.Log.LogInfo($"{rendererFlag.Renderer} - {rendererFlag.FirstPersonFlag}");
+
+                    if (rendererIsHead)
+                    {
+                        var renderer = rendererFlag.GetRenderer(VrmRootObject.transform);
+                        if (renderer != null)
+                        {
+                            VrmHeadMeshes.Add(renderer);
+                        }
+                    }
+                }
+            }
+
+            ThirdPersonPlugin.Log.LogInfo($"Local VRM Model Initialized");
+        }
+
+        private static bool SetVrmHeadVisibility(bool visible)
+        {
+            if (!VrmAssemblyExists) return false;
+            VrmInit();
+            if (VrmRootObject == null) return false;
+
+            if (VrmHeadMeshes.Count > 0)
+            {
+                UnityEngine.Rendering.ShadowCastingMode shadowCastingMode = visible ? UnityEngine.Rendering.ShadowCastingMode.On : UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly;
+                foreach (var renderer in VrmHeadMeshes)
+                {
+                    renderer.shadowCastingMode = shadowCastingMode;
+                }
+            }
+            else
+            {
+                Vector3 scale = visible ? new Vector3(1f, 1f, 1f) : new Vector3(0f, 0f, 0f);
+                VrmHeadTransform.localScale = scale;
+            }
+
+            VrmHeadVisible = visible;
+            return true;
         }
 
         private static Transform RecursiveFindChild(Transform parent, string childName)
