@@ -238,12 +238,12 @@ namespace LCThirdPerson.Patches
                 return;
             }
 
+            var gameplayCamera = Instance.gameplayCamera;
+
             // Move camera forward/back to avoid head better
-            var forwardOffset = originalTransform.up;
+            var forwardOffset = gameplayCamera.transform.up;
             forwardOffset.y = 0f;
             forwardOffset *= ThirdPersonPlugin.Instance.CameraLookDownOffset.Value;
-
-            var gameplayCamera = Instance.gameplayCamera;
 
             // Set the placeholder rotation to match the updated gameplayCamera rotation
             // originalTransform.transform.rotation = gameplayCamera.transform.rotation;
