@@ -212,9 +212,9 @@ namespace LCThirdPerson.Patches
             ThirdPersonPlugin.Camera.rotation = Instance.gameplayCamera.transform.rotation;
 
             // Reset the camera before the PlayerController update method, so nothing gets too messed up
-            if (!Instance.isClimbingLadder || !Instance.inVehicleAnimation)
+            if (!Instance.isClimbingLadder && !Instance.inVehicleAnimation)
             {
-                Instance.gameplayCamera.transform.rotation = ThirdPersonPlugin.OriginalTransform.transform.rotation;
+                // Instance.gameplayCamera.transform.rotation = ThirdPersonPlugin.OriginalTransform.transform.rotation;
                 Instance.gameplayCamera.transform.position = ThirdPersonPlugin.OriginalTransform.transform.position;
             }
 
@@ -246,46 +246,60 @@ namespace LCThirdPerson.Patches
             var gameplayCamera = Instance.gameplayCamera;
 
             // Set the placeholder rotation to match the updated gameplayCamera rotation
-            originalTransform.transform.rotation = gameplayCamera.transform.rotation;
+            // originalTransform.transform.rotation = gameplayCamera.transform.rotation;
+
+            bool fixIntersectRay = false;
 
             if (!ThirdPersonPlugin.Instance.Enabled || Instance.inTerminalMenu)
             {
-                return;
-            }
-
-            var offset = originalTransform.transform.right * ThirdPersonPlugin.Instance.Offset.Value.x +
-                originalTransform.transform.up * ThirdPersonPlugin.Instance.Offset.Value.y;
-            var lineStart = originalTransform.transform.position;
-            var lineEnd = originalTransform.transform.position + forwardOffset + offset + originalTransform.transform.forward * ThirdPersonPlugin.Instance.Offset.Value.z;
-
-            // Check for camera collisions
-            if (Physics.Linecast(lineStart, lineEnd, out RaycastHit hit, StartOfRound.Instance.collidersAndRoomMask) && !IgnoreCollision(hit.transform.name))
-            {
-                offset += originalTransform.transform.forward * -Mathf.Max(hit.distance, 0);
+                // Set the camera look down offset for first person VRM
+                if (ThirdPersonPlugin.Instance.FirstPersonVrm.Value)
+                {
+                    gameplayCamera.transform.position = originalTransform.transform.position + forwardOffset;
+                    fixIntersectRay = true;
+                }
             }
             else
             {
-                offset += originalTransform.transform.forward * ThirdPersonPlugin.Instance.Offset.Value.z;
+                var offset = originalTransform.transform.right * ThirdPersonPlugin.Instance.Offset.Value.x +
+                    originalTransform.transform.up * ThirdPersonPlugin.Instance.Offset.Value.y;
+                var lineStart = originalTransform.transform.position;
+                var lineEnd = originalTransform.transform.position + forwardOffset + offset + gameplayCamera.transform.forward * ThirdPersonPlugin.Instance.Offset.Value.z;
+
+                // Check for camera collisions
+                if (Physics.Linecast(lineStart, lineEnd, out RaycastHit hit, StartOfRound.Instance.collidersAndRoomMask) && !IgnoreCollision(hit.transform.name))
+                {
+                    offset += gameplayCamera.transform.forward * -Mathf.Max(hit.distance, 0);
+                }
+                else
+                {
+                    offset += gameplayCamera.transform.forward * ThirdPersonPlugin.Instance.Offset.Value.z;
+                }
+
+                // Limit height movement by camera
+                offset.y = Math.Min(offset.y, ThirdPersonPlugin.Instance.CameraMaxHeight.Value);
+
+                // Set the camera offset
+                gameplayCamera.transform.position = originalTransform.transform.position + forwardOffset + offset;
+
+                fixIntersectRay = true;
             }
 
-            // Limit height movement by camera
-            offset.y = Math.Min(offset.y, ThirdPersonPlugin.Instance.CameraMaxHeight.Value);
-
-            // Set the camera offset
-            gameplayCamera.transform.position = originalTransform.transform.position + forwardOffset + offset;
-
             // Don't fix interact ray if on a ladder
-            if (Instance.isClimbingLadder || !Instance.inVehicleAnimation)
+            if (Instance.isClimbingLadder)
             {
-                return;
+                fixIntersectRay = false;
             }
 
             // Fix the interact ray
-            var methodInfo = typeof(PlayerControllerB).GetMethod(
-                "SetHoverTipAndCurrentInteractTrigger",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance
-            );
-            methodInfo.Invoke(Instance, new object[] { });
+            if (fixIntersectRay)
+            {
+                var methodInfo = typeof(PlayerControllerB).GetMethod(
+                    "SetHoverTipAndCurrentInteractTrigger",
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance
+                );
+                methodInfo.Invoke(Instance, new object[] { });
+            }
         }
 
         [HarmonyPrefix]
@@ -298,7 +312,7 @@ namespace LCThirdPerson.Patches
             }
 
             Instance.gameplayCamera.transform.position = ThirdPersonPlugin.Camera.transform.position;
-            Instance.gameplayCamera.transform.rotation = ThirdPersonPlugin.Camera.transform.rotation;
+            // Instance.gameplayCamera.transform.rotation = ThirdPersonPlugin.Camera.transform.rotation;
         }
 
         [HarmonyPostfix]
@@ -311,7 +325,7 @@ namespace LCThirdPerson.Patches
             }
 
             Instance.gameplayCamera.transform.position = ThirdPersonPlugin.OriginalTransform.transform.position;
-            Instance.gameplayCamera.transform.rotation = ThirdPersonPlugin.OriginalTransform.transform.rotation;
+            // Instance.gameplayCamera.transform.rotation = ThirdPersonPlugin.OriginalTransform.transform.rotation;
         }
 
         [HarmonyPostfix]

@@ -19,7 +19,7 @@ namespace LCThirdPerson.Patches
             }
 
             playerScript.gameplayCamera.transform.position = ThirdPersonPlugin.Camera.transform.position;
-            playerScript.gameplayCamera.transform.rotation = ThirdPersonPlugin.Camera.transform.rotation;
+            // playerScript.gameplayCamera.transform.rotation = ThirdPersonPlugin.Camera.transform.rotation;
         }
 
         [HarmonyPostfix]
@@ -32,7 +32,7 @@ namespace LCThirdPerson.Patches
             }
 
             playerScript.gameplayCamera.transform.position = ThirdPersonPlugin.OriginalTransform.transform.position;
-            playerScript.gameplayCamera.transform.rotation = ThirdPersonPlugin.OriginalTransform.transform.rotation;
+            // playerScript.gameplayCamera.transform.rotation = ThirdPersonPlugin.OriginalTransform.transform.rotation;
         }
     }
 }

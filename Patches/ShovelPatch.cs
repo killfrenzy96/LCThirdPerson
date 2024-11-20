@@ -11,7 +11,7 @@ namespace LCThirdPerson.Patches
     internal class ShovelPatch
     {
         private static Vector3 originalPosition;
-        private static Quaternion originalRotation;
+        // private static Quaternion originalRotation;
 
         [HarmonyPrefix]
         [HarmonyPatch("HitShovel")]
@@ -23,9 +23,9 @@ namespace LCThirdPerson.Patches
             }
 
             originalPosition = ___previousPlayerHeldBy.gameplayCamera.transform.position;
-            originalRotation = ___previousPlayerHeldBy.gameplayCamera.transform.rotation;
+            // originalRotation = ___previousPlayerHeldBy.gameplayCamera.transform.rotation;
             ___previousPlayerHeldBy.gameplayCamera.transform.position = ThirdPersonPlugin.OriginalTransform.transform.position;
-            ___previousPlayerHeldBy.gameplayCamera.transform.rotation = ThirdPersonPlugin.OriginalTransform.transform.rotation;
+            // ___previousPlayerHeldBy.gameplayCamera.transform.rotation = ThirdPersonPlugin.OriginalTransform.transform.rotation;
         }
 
         [HarmonyPostfix]
@@ -38,7 +38,7 @@ namespace LCThirdPerson.Patches
             }
 
             ___previousPlayerHeldBy.gameplayCamera.transform.position = originalPosition;
-            ___previousPlayerHeldBy.gameplayCamera.transform.rotation = originalRotation;
+            // ___previousPlayerHeldBy.gameplayCamera.transform.rotation = originalRotation;
         }
     }
 }
