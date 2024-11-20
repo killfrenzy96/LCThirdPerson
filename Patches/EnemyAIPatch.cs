@@ -15,6 +15,8 @@ namespace LCThirdPerson.Patches
         [HarmonyPatch("EnableEnemyMesh")]
         private static void EnableEnemyMeshPostfix(ref EnemyAI __instance, bool enable, bool overrideDoNotSet)
         {
+            if (__instance is not DressGirlAI) return;
+
             for (int i = 0; i < __instance.skinnedMeshRenderers.Length; i++)
             {
                 if (!__instance.skinnedMeshRenderers[i].CompareTag("DoNotSet") || overrideDoNotSet)

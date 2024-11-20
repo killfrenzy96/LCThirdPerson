@@ -409,8 +409,6 @@ namespace LCThirdPerson.Patches
                 {
                     string rendererName = rendererFlag.Renderer;
                     bool rendererIsHead = rendererFlag.FirstPersonFlag == UniGLTF.Extensions.VRMC_vrm.FirstPersonType.thirdPersonOnly;
-                    
-                    ThirdPersonPlugin.Log.LogInfo($"{rendererFlag.Renderer} - {rendererFlag.FirstPersonFlag}");
 
                     if (rendererIsHead)
                     {
