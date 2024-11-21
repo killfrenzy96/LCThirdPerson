@@ -23,6 +23,8 @@ namespace LCThirdPerson.Patches
         private static Transform VrmHeadTransform = null;
         private static List<Renderer> VrmHeadMeshes = new List<Renderer>();
 
+        private static bool TooManyEmotesExists = false;
+
         private static bool VrmTriggerAwake = false;
         private static bool VrmHeadVisible = true;
 
@@ -113,6 +115,14 @@ namespace LCThirdPerson.Patches
                 // Initialize VRM
                 VrmInit();
 
+                if (TooManyEmotesExists && TooManyEmotesPatch.isPerformingEmote)
+                {
+                    // Show/hide head
+                    SetVrmHeadVisibility(!TooManyEmotesPatch.firstPersonEmotesEnabled);
+                    VrmTriggerAwake = true;
+                    return;
+                }
+
                 // Hide head if it is too close to the camera
                 if (ThirdPersonPlugin.Camera != null && VrmHeadTransform != null)
                 {
@@ -159,6 +169,10 @@ namespace LCThirdPerson.Patches
                 Instance = __instance;
                 OriginalCullingMask = Instance.gameplayCamera.cullingMask;
                 OriginalShadowCastingMode = Instance.thisPlayerModel.shadowCastingMode;
+
+                ThirdPersonPlugin.Instance.OnEnable.RemoveAllListeners();
+                ThirdPersonPlugin.Instance.OnDisable.RemoveAllListeners();
+
                 ThirdPersonPlugin.Instance.OnEnable.AddListener(OnEnable);
                 ThirdPersonPlugin.Instance.OnDisable.AddListener(OnDisable);
 
@@ -167,7 +181,7 @@ namespace LCThirdPerson.Patches
                     OnEnable();
                 }
                 else
-                { 
+                {
                     OnDisable();
                 }
 
@@ -175,6 +189,7 @@ namespace LCThirdPerson.Patches
                 Assembly[] assems = AppDomain.CurrentDomain.GetAssemblies();
                 bool vrmFound = false;
                 bool uniHumanoidFound = false;
+                bool tooManyEmotesFound = false;
                 foreach (Assembly assem in assems)
                 {
                     if (assem.FullName.StartsWith("VRM10,"))
@@ -185,11 +200,23 @@ namespace LCThirdPerson.Patches
                     {
                         uniHumanoidFound = true;
                     }
+                    else if (assem.FullName.StartsWith("TooManyEmotes,"))
+                    {
+                        tooManyEmotesFound = true;
+                    }
                 }
 
                 if (vrmFound && uniHumanoidFound)
                 {
                     VrmAssemblyExists = true;
+                    ThirdPersonPlugin.Log.LogInfo($"VRM Compatibility Enabled");
+
+                    if (tooManyEmotesFound)
+                    {
+                        TooManyEmotesExists = true;
+                        ThirdPersonPlugin.Instance.PatchTooManyEmotes();
+                        ThirdPersonPlugin.Log.LogInfo($"TooManyEmotes Compatibility Enabled");
+                    }
                 }
 
                 TriggerAwake = false;
@@ -237,6 +264,8 @@ namespace LCThirdPerson.Patches
             {
                 return;
             }
+
+            if (TooManyEmotesExists && TooManyEmotesPatch.isPerformingEmote) return;
 
             var gameplayCamera = Instance.gameplayCamera;
 

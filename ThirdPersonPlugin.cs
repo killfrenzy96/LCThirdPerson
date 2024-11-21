@@ -41,6 +41,8 @@ namespace LCThirdPerson
         internal UnityEvent OnEnable { get; private set; }
         internal UnityEvent OnDisable { get; private set; }
 
+        private bool TooManyEmotesPatchActive = false;
+
         private void Awake()
         {
             // Plugin startup logic
@@ -116,6 +118,12 @@ namespace LCThirdPerson
             {
                 OnDisable.Invoke();
             }
+        }
+        public void PatchTooManyEmotes()
+        {
+            if (TooManyEmotesPatchActive) return;
+            harmony.PatchAll(typeof(TooManyEmotesPatch));
+            TooManyEmotesPatchActive = true;
         }
     }
 }

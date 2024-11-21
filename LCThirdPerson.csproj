@@ -34,6 +34,9 @@
     <Reference Include="Facepunch.Steamworks.Win64">
       <HintPath>..\..\..\Games\SteamLibrary\steamapps\common\Lethal Company\Lethal Company_Data\Managed\Facepunch.Steamworks.Win64.dll</HintPath>
     </Reference>
+    <Reference Include="TooManyEmotes">
+      <HintPath>Library\TooManyEmotes.dll</HintPath>
+    </Reference>
     <Reference Include="UniHumanoid">
       <HintPath>..\DLLs\UniHumanoid.dll</HintPath>
     </Reference>
