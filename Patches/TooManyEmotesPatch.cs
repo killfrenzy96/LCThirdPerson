@@ -29,6 +29,13 @@ namespace LCThirdPerson.Patches
             FixCamera();
         }
 
+        [HarmonyPostfix]
+        [HarmonyPatch("UpdateFirstPersonEmoteMode")]
+        private static void UpdateFirstPersonEmoteModePrepatch(bool value) // Called when starting emote
+        {
+            firstPersonEmotesEnabled = ThirdPersonEmoteController.firstPersonEmotesEnabled;
+        }
+
         private static void FixCamera()
         {
             if (ThirdPersonPlugin.Instance == null) return;
