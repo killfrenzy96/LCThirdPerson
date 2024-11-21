@@ -366,12 +366,14 @@ namespace LCThirdPerson.Patches
                 return;
             }
 
-            if (!ThirdPersonPlugin.Instance.Enabled)
+            if (ThirdPersonPlugin.Instance.Enabled)
             {
-                return;
+                OnEnable();
             }
-
-            OnEnable();
+            else
+            {
+                OnDisable();
+            }
         }
 
         private static Transform CopyTransform(Transform copyTransform, string gameObjectName)
