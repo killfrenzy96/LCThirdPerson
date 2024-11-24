@@ -18,6 +18,8 @@ namespace LCThirdPerson.Patches
         private static int OriginalCullingMask;
         private static UnityEngine.Rendering.ShadowCastingMode OriginalShadowCastingMode;
 
+        private static MeshRenderer VisorMesh = null;
+
         private static bool VrmAssemblyExists = false;
         private static GameObject VrmRootObject = null;
         private static Transform VrmHeadTransform = null;
@@ -41,8 +43,8 @@ namespace LCThirdPerson.Patches
 
             // Hide the visor
             // visor.gameObject.SetActive(false);
-            var visorRenderers = visor.GetComponentInChildren<MeshRenderer>();
-            if (visorRenderers) visorRenderers.enabled = false;
+            VisorMesh = visor.GetComponentInChildren<MeshRenderer>();
+            if (VisorMesh) VisorMesh.enabled = false;
 
             if (ThirdPersonPlugin.Instance.FirstPersonVrm.Value) SetVrmHeadVisibility(true);
 
@@ -68,8 +70,8 @@ namespace LCThirdPerson.Patches
 
             // Show the visor
             // visor.gameObject.SetActive(true);
-            var visorRenderers = visor.GetComponentInChildren<MeshRenderer>();
-            if (visorRenderers) visorRenderers.enabled = !ThirdPersonPlugin.Instance.AlwaysHideVisor.Value;
+            VisorMesh = visor.GetComponentInChildren<MeshRenderer>();
+            if (VisorMesh) VisorMesh.enabled = !ThirdPersonPlugin.Instance.AlwaysHideVisor.Value;
 
             if (ThirdPersonPlugin.Instance.FirstPersonVrm.Value && SetVrmHeadVisibility(false))
             {
@@ -210,13 +212,13 @@ namespace LCThirdPerson.Patches
                 {
                     VrmAssemblyExists = true;
                     ThirdPersonPlugin.Log.LogInfo($"VRM Compatibility Enabled");
+                }
 
-                    if (tooManyEmotesFound)
-                    {
-                        TooManyEmotesExists = true;
-                        ThirdPersonPlugin.Instance.PatchTooManyEmotes();
-                        ThirdPersonPlugin.Log.LogInfo($"TooManyEmotes Compatibility Enabled");
-                    }
+                if (tooManyEmotesFound)
+                {
+                    TooManyEmotesExists = true;
+                    ThirdPersonPlugin.Instance.PatchTooManyEmotes();
+                    ThirdPersonPlugin.Log.LogInfo($"TooManyEmotes Compatibility Enabled");
                 }
 
                 TriggerAwake = false;
@@ -282,7 +284,7 @@ namespace LCThirdPerson.Patches
             if (!ThirdPersonPlugin.Instance.Enabled || Instance.inTerminalMenu)
             {
                 // Set the camera look down offset for first person VRM
-                if (ThirdPersonPlugin.Instance.FirstPersonVrm.Value)
+                if (ThirdPersonPlugin.Instance.FirstPersonVrm.Value && VisorMesh != null && !VisorMesh.enabled)
                 {
                     gameplayCamera.transform.position = originalTransform.transform.position + forwardOffset;
                     fixIntersectRay = true;
