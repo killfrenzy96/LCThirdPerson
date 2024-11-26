@@ -12,9 +12,16 @@ namespace LCThirdPerson.Patches
         public static bool isPerformingEmote = false;
         public static bool firstPersonEmotesEnabled = false;
 
+        [HarmonyPrefix]
+        [HarmonyPatch("OnStartCustomEmoteLocal")]
+        private static void OnStartCustomEmoteLocalPrepatch() // Called before starting emote
+        {
+            if (ThirdPersonEmoteController.firstPersonEmotesEnabled) ThirdPersonPlugin.Instance.ForceEnabled(false);
+        }
+
         [HarmonyPostfix]
         [HarmonyPatch("OnStartCustomEmoteLocal")]
-        private static void OnStartCustomEmoteLocalPrepatch() // Called when starting emote
+        private static void OnStartCustomEmoteLocalPostpatch() // Called after starting emote
         {
             isPerformingEmote = true;
             firstPersonEmotesEnabled = ThirdPersonEmoteController.firstPersonEmotesEnabled;
@@ -22,25 +29,22 @@ namespace LCThirdPerson.Patches
 
         [HarmonyPostfix]
         [HarmonyPatch("OnStopCustomEmoteLocal")]
-        private static void OnStopCustomEmoteLocalPrepatch() // Called when ending emote and resetting
+        private static void OnStopCustomEmoteLocalPostpatch() // Called after ending emote and resetting
         {
             isPerformingEmote = false;
             firstPersonEmotesEnabled = ThirdPersonEmoteController.firstPersonEmotesEnabled;
-            FixCamera();
+            ThirdPersonPlugin.Instance.ForceEnabled(ThirdPersonPlugin.Instance.Enabled);
         }
 
         [HarmonyPostfix]
         [HarmonyPatch("UpdateFirstPersonEmoteMode")]
-        private static void UpdateFirstPersonEmoteModePrepatch(bool value) // Called when starting emote
+        private static void UpdateFirstPersonEmoteModePostpatch(bool value) // Called after starting emote
         {
             firstPersonEmotesEnabled = ThirdPersonEmoteController.firstPersonEmotesEnabled;
-        }
-
-        private static void FixCamera()
-        {
-            if (ThirdPersonPlugin.Instance == null) return;
-            ThirdPersonPlugin.Instance.SetEnabled(!ThirdPersonPlugin.Instance.Enabled);
-            ThirdPersonPlugin.Instance.SetEnabled(!ThirdPersonPlugin.Instance.Enabled);
+            if (isPerformingEmote && firstPersonEmotesEnabled)
+            {
+                ThirdPersonPlugin.Instance.ForceEnabled(false);
+            }
         }
     }
 }

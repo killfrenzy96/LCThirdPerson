@@ -28,6 +28,7 @@ namespace LCThirdPerson
         public ConfigEntry<bool> AlwaysHideVisor { get; set; }
         public ConfigEntry<bool> FirstPersonVrm { get; set; }
         public ConfigEntry<float> FirstPersonVrmHeadHideDistance { get; set; }
+        public ConfigEntry<bool> TooManyEmotesSyncFirstPersonSetting { get; set; }
 
         private bool tpEnabled;
         public bool Enabled {
@@ -119,6 +120,19 @@ namespace LCThirdPerson
                 OnDisable.Invoke();
             }
         }
+
+        public void ForceEnabled(bool value)
+        {
+            if (value)
+            {
+                OnEnable.Invoke();
+            }
+            else
+            {
+                OnDisable.Invoke();
+            }
+        }
+
         public void PatchTooManyEmotes()
         {
             if (TooManyEmotesPatchActive) return;
