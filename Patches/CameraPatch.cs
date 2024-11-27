@@ -15,8 +15,8 @@ namespace LCThirdPerson.Patches
     {
         private static PlayerControllerB Instance;
         private static bool TriggerAwake;
-        private static int OriginalCullingMask;
-        private static UnityEngine.Rendering.ShadowCastingMode OriginalShadowCastingMode;
+        // private static int OriginalCullingMask;
+        // private static UnityEngine.Rendering.ShadowCastingMode OriginalShadowCastingMode;
 
         private static MeshRenderer VisorMesh = null;
 
@@ -55,7 +55,7 @@ namespace LCThirdPerson.Patches
             Instance.thisPlayerModelArms.enabled = false;
 
             // Set culling mask to see model's layer
-            Instance.gameplayCamera.cullingMask = OriginalCullingMask | (1 << 23);
+            Instance.gameplayCamera.cullingMask = Instance.gameplayCamera.cullingMask | (1 << 23); // OriginalCullingMask | (1 << 23);
 
             // Increase the grab distance
             Instance.grabDistance = Math.Max(5f - ThirdPersonPlugin.Instance.Offset.Value.z, 5);
@@ -73,7 +73,7 @@ namespace LCThirdPerson.Patches
             VisorMesh = visor.GetComponentInChildren<MeshRenderer>();
             if (VisorMesh) VisorMesh.enabled = !ThirdPersonPlugin.Instance.AlwaysHideVisor.Value;
 
-            if (ThirdPersonPlugin.Instance.FirstPersonVrm.Value && SetVrmHeadVisibility(false))
+            if (VrmAssemblyExists && ThirdPersonPlugin.Instance.FirstPersonVrm.Value && SetVrmHeadVisibility(false))
             {
                 // Show the player model
                 playerModel.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.On;
@@ -82,18 +82,18 @@ namespace LCThirdPerson.Patches
                 Instance.thisPlayerModelArms.enabled = false;
 
                 // Set culling mask to see model's layer
-                Instance.gameplayCamera.cullingMask = OriginalCullingMask | (1 << 23);
+                Instance.gameplayCamera.cullingMask = Instance.gameplayCamera.cullingMask | (1 << 23);
             }
             else
             {
                 // Hide the player model
-                playerModel.shadowCastingMode = OriginalShadowCastingMode;
+                playerModel.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly; // OriginalShadowCastingMode;
 
                 // Show the arms
                 Instance.thisPlayerModelArms.enabled = true;
 
                 // Hide the models' layer again
-                Instance.gameplayCamera.cullingMask = OriginalCullingMask;
+                Instance.gameplayCamera.cullingMask = Instance.gameplayCamera.cullingMask & ~(1 << 23);
             }
 
             // Reset the grab distance
@@ -154,7 +154,7 @@ namespace LCThirdPerson.Patches
                         Instance.thisPlayerModelArms.enabled = false;
 
                         // Set culling mask to see model's layer
-                        Instance.gameplayCamera.cullingMask = OriginalCullingMask | (1 << 23);
+                        Instance.gameplayCamera.cullingMask = Instance.gameplayCamera.cullingMask | (1 << 23);
 
                         VrmTriggerAwake = false;
                     }
@@ -169,8 +169,8 @@ namespace LCThirdPerson.Patches
             if (TriggerAwake)
             {
                 Instance = __instance;
-                OriginalCullingMask = Instance.gameplayCamera.cullingMask;
-                OriginalShadowCastingMode = Instance.thisPlayerModel.shadowCastingMode;
+                // OriginalCullingMask = Instance.gameplayCamera.cullingMask;
+                // OriginalShadowCastingMode = Instance.thisPlayerModel.shadowCastingMode;
 
                 ThirdPersonPlugin.Instance.OnEnable.RemoveAllListeners();
                 ThirdPersonPlugin.Instance.OnDisable.RemoveAllListeners();
