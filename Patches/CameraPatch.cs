@@ -117,14 +117,6 @@ namespace LCThirdPerson.Patches
                 // Initialize VRM
                 VrmInit();
 
-                if (TooManyEmotesExists && TooManyEmotesPatch.isPerformingEmote)
-                {
-                    // Show/hide head
-                    SetVrmHeadVisibility(!TooManyEmotesPatch.firstPersonEmotesEnabled);
-                    VrmTriggerAwake = true;
-                    return;
-                }
-
                 // Hide head if it is too close to the camera
                 if (ThirdPersonPlugin.Camera != null && VrmHeadTransform != null)
                 {
@@ -254,6 +246,11 @@ namespace LCThirdPerson.Patches
             }
 
             ThirdPersonPlugin.Instance.CheckEnable();
+
+            if (TooManyEmotesExists && TooManyEmotesPatch.isPerformingEmote)
+            {
+                TooManyEmotesPatch.FixCamera();
+            }
         }
 
         [HarmonyPostfix]
@@ -267,7 +264,7 @@ namespace LCThirdPerson.Patches
                 return;
             }
 
-            if (TooManyEmotesExists && TooManyEmotesPatch.isPerformingEmote) return;
+            // if (TooManyEmotesExists && TooManyEmotesPatch.isPerformingEmote) return;
 
             var gameplayCamera = Instance.gameplayCamera;
 

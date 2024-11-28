@@ -41,9 +41,21 @@ namespace LCThirdPerson.Patches
         private static void UpdateFirstPersonEmoteModePostpatch(bool value) // Called after starting emote
         {
             firstPersonEmotesEnabled = ThirdPersonEmoteController.firstPersonEmotesEnabled;
-            if (isPerformingEmote && firstPersonEmotesEnabled)
+            FixCamera();
+        }
+
+        public static void FixCamera()
+        {
+            if (isPerformingEmote)
             {
-                ThirdPersonPlugin.Instance.ForceEnabled(false);
+                if (ThirdPersonPlugin.Instance.Enabled)
+                {
+                    ThirdPersonPlugin.Instance.ForceEnabled(true);
+                }
+                else
+                {
+                    ThirdPersonPlugin.Instance.ForceEnabled(!firstPersonEmotesEnabled);
+                }
             }
         }
     }
