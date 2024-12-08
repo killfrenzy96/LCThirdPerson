@@ -32,13 +32,13 @@
       <HintPath>Library\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="Facepunch.Steamworks.Win64">
-      <HintPath>..\..\..\Games\SteamLibrary\steamapps\common\Lethal Company\Lethal Company_Data\Managed\Facepunch.Steamworks.Win64.dll</HintPath>
+      <HintPath>Library\Facepunch.Steamworks.Win64.dll</HintPath>
     </Reference>
     <Reference Include="TooManyEmotes">
       <HintPath>Library\TooManyEmotes.dll</HintPath>
     </Reference>
     <Reference Include="UniHumanoid">
-      <HintPath>..\DLLs\UniHumanoid.dll</HintPath>
+      <HintPath>Library\UniHumanoid.dll</HintPath>
     </Reference>
     <Reference Include="Unity.Netcode.Runtime">
       <HintPath>Library\Unity.Netcode.Runtime.dll</HintPath>
@@ -47,7 +47,7 @@
       <HintPath>Library\UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.AnimationModule">
-      <HintPath>..\..\..\Games\SteamLibrary\steamapps\common\Lethal Company\Lethal Company_Data\Managed\UnityEngine.AnimationModule.dll</HintPath>
+      <HintPath>Library\UnityEngine.AnimationModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>Library\UnityEngine.CoreModule.dll</HintPath>
@@ -56,7 +56,7 @@
       <HintPath>Library\UnityEngine.ImageConversionModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.InputModule">
-      <HintPath>..\..\..\Games\SteamLibrary\steamapps\common\Lethal Company\Lethal Company_Data\Managed\UnityEngine.InputModule.dll</HintPath>
+      <HintPath>Library\UnityEngine.InputModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.PhysicsModule">
       <HintPath>Library\UnityEngine.PhysicsModule.dll</HintPath>
@@ -65,7 +65,7 @@
       <HintPath>Library\UnityEngine.UI.dll</HintPath>
     </Reference>
     <Reference Include="VRM10">
-      <HintPath>..\DLLs\VRM10.dll</HintPath>
+      <HintPath>Library\VRM10.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>
