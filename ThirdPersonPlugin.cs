@@ -20,6 +20,7 @@ namespace LCThirdPerson
         public static Sprite CrosshairSprite { get; internal set; }
 
         public ConfigEntry<KeyboardShortcut> Enable { get; internal set; }
+        public ConfigEntry<KeyboardShortcut> ShoulderSwap { get; internal set; }
         public ConfigEntry<bool> ShowCursor { get; set; }
         public ConfigEntry<bool> StartEnabled { get; set; }
         public ConfigEntry<Vector3> Offset { get; set; }
@@ -36,7 +37,10 @@ namespace LCThirdPerson
             set { SetEnabled(value); }
         }
 
+        public bool ShoulderSwapActive = false;
+
         private bool enablePressed = false;
+        private bool shoulderSwapPressed = false;
 
         internal static ManualLogSource Log { get; set; }
         internal UnityEvent OnEnable { get; private set; }
@@ -73,6 +77,7 @@ namespace LCThirdPerson
         internal void SetConfig()
         {
             Enable = Config.Bind("Keybinds", "Toggle", new KeyboardShortcut(KeyCode.V));
+            ShoulderSwap = Config.Bind("Keybinds", "ShoulderSwap", new KeyboardShortcut(KeyCode.CapsLock));
             ShowCursor = Config.Bind("Options", "ShowCursor", true);
             StartEnabled = Config.Bind("Options", "StartEnabled", true);
             Offset = Config.Bind("Options", "CameraOffset", new Vector3(0.4f, 0f, -2f));
@@ -130,6 +135,23 @@ namespace LCThirdPerson
             else
             {
                 OnDisable.Invoke();
+            }
+        }
+
+        internal void CheckShoulderSwap()
+        {
+            // if (Enable.Value.IsPressed())
+            if (UnityInput.Current.GetKey(ShoulderSwap.Value.MainKey))
+            {
+                if (!shoulderSwapPressed)
+                {
+                    ShoulderSwapActive = !ShoulderSwapActive;
+                    shoulderSwapPressed = true;
+                }
+            }
+            else
+            {
+                shoulderSwapPressed = false;
             }
         }
 

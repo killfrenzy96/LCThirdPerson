@@ -1,3 +1,6 @@
+### 1.0.26
+- Added shoulder swap button (default CapsLock).
+
 ### 1.0.25
 - Even more fixes related to TooManyEmotes compatibility (hopefully good now).
 

@@ -17,6 +17,7 @@ namespace LCThirdPerson.Patches
         private static bool TriggerAwake;
         // private static int OriginalCullingMask;
         // private static UnityEngine.Rendering.ShadowCastingMode OriginalShadowCastingMode;
+        private static float ShoulderSwapCurrentOffset = 1f;
 
         private static MeshRenderer VisorMesh = null;
 
@@ -247,6 +248,11 @@ namespace LCThirdPerson.Patches
 
             ThirdPersonPlugin.Instance.CheckEnable();
 
+            if (ThirdPersonPlugin.Instance.Enabled)
+            {
+                ThirdPersonPlugin.Instance.CheckShoulderSwap();
+            }
+
             if (TooManyEmotesExists && TooManyEmotesPatch.isPerformingEmote)
             {
                 TooManyEmotesPatch.FixCamera();
@@ -289,7 +295,11 @@ namespace LCThirdPerson.Patches
             }
             else
             {
-                var offset = originalTransform.transform.right * ThirdPersonPlugin.Instance.Offset.Value.x +
+                var shoulderSwapTarget = ThirdPersonPlugin.Instance.ShoulderSwapActive ? -1f : 1f;
+                var smoothedShoulderSwapOffset = Mathf.Lerp(ShoulderSwapCurrentOffset, shoulderSwapTarget, Mathf.Min(1f, 15f * Time.deltaTime));
+                ShoulderSwapCurrentOffset = smoothedShoulderSwapOffset;
+
+                var offset = originalTransform.transform.right * (ThirdPersonPlugin.Instance.Offset.Value.x * smoothedShoulderSwapOffset) +
                     originalTransform.transform.up * ThirdPersonPlugin.Instance.Offset.Value.y;
                 var lineStart = originalTransform.transform.position;
                 var lineEnd = originalTransform.transform.position + forwardOffset + offset + gameplayCamera.transform.forward * ThirdPersonPlugin.Instance.Offset.Value.z;

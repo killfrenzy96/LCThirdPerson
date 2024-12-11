@@ -19,6 +19,7 @@ Toggle with "V"
 
 ## Added Features and Fixes
 - Improved camera angles.
+- Added shoulder swap button (CapsLock).
 - Added config option to always hide visor.
 - Experimental implementation to see your VRM avatar in first person (must enable via config).
 - Fixed grabbing distance extending each time we load into a new planet.
